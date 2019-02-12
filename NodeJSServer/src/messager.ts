@@ -1,4 +1,4 @@
-class MessagerModule {
+export class MessagerModule {
     account = new Account()
 
     login() {
@@ -9,15 +9,15 @@ class MessagerModule {
     }
 }
 
-class UserInfo {
+export class UserInfo {
     nickName = ""
     id = ""
 }
 
-class Account {
+export class Account {
     id = "";
     isGuest = false;
-    userInfo = new UserInfo()
+    userInfo = new UserInfo() 
 }
 
 
