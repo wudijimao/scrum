@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "Common"
+		},
+		{
+			"path": "vueclient"
 		}
 	]
 }
