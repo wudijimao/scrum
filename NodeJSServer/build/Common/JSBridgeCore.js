@@ -33,11 +33,16 @@ class WebSocketBridgeCore {
 exports.WebSocketBridgeCore = WebSocketBridgeCore;
 class Bridge {
     constructor(core) {
+        this.handlers = {};
         this.id = 0;
         this.core = null;
+        this._modelMap = {};
         this.core = core;
         core.register();
-        core.onRecve = this.onRecveMes;
+        let self = this;
+        core.onRecve = function (params) {
+            self.onRecveMes(params);
+        };
     }
     genHandleId() {
         return this.id++;
@@ -54,42 +59,89 @@ class Bridge {
             handlerId: id
         });
     }
+    callBack(handlerId, args) {
+        this.core.call({
+            method: "callback",
+            handlerId: handlerId,
+            args: args
+        });
+    }
     onRecveMes(json) {
+        debugger;
         if (json.method === 'callback') {
             var callback = this.handlers[json.handlerId];
             callback && callback(json.args, json.err);
             delete this.handlers[json.handlerId];
         }
-        else {
+        else if (json.method === 'sendEvent') {
             var event = document.createEvent(json.name);
             event.initEvent(json.data, true, true);
             document.dispatchEvent(event);
         }
-    }
-    register(moduleName, module) {
-        for (part in module) {
-        }
-        native[moduleName][funcName] = function () {
-            var inArguments = arguments;
-            return new Promise(function (resolve, reject) {
-                var args = {};
-                for (var index in inArguments) {
-                    args[argsList[index]] = inArguments[index];
+        else {
+            let module = this._modelMap[json.module];
+            if (module != undefined) {
+                var funcName = json.func;
+                var func = module[funcName];
+                if (func != undefined) {
+                    let ret = func(json.args);
+                    this.callBack(json.handlerId, ret);
                 }
-                window.bridge.callNative(moduleName, funcName, args, function (data, err) {
-                    if (err === undefined) {
-                        resolve(data);
+                else {
+                    funcName = funcName + "Async";
+                    func = module[funcName];
+                    if (func != undefined) {
+                        let self = this;
+                        let retPromise = func(json.args);
+                        retPromise.then(function (ret) {
+                            self.callBack(json.handlerId, ret);
+                        }).catch(function (e) {
+                            debugger;
+                        });
                     }
                     else {
-                        reject(err);
+                        console.log("未找到对应的方法");
                     }
-                });
-            });
-        };
+                }
+            }
+        }
+    }
+    register(moduleName, module) {
+        console.log(JSON.stringify(module));
+        let self = this;
+        this._modelMap[moduleName] = module;
+        for (let part in module) {
+            if (part.startsWith("call")) {
+                let funcName = part[4].toLowerCase() + part.substring(5);
+                module[part] = function () {
+                    var inArguments = arguments;
+                    return new Promise(function (resolve, reject) {
+                        var args = {};
+                        for (var index in inArguments) {
+                            args[argsList[index]] = inArguments[index];
+                        }
+                        self.callNative(moduleName, funcName, args, function (data, err) {
+                            if (err === undefined) {
+                                resolve(data);
+                            }
+                            else {
+                                reject(err);
+                            }
+                        });
+                    });
+                };
+            }
+        }
     }
 }
 exports.Bridge = Bridge;
 class TestBridgeModule {
+    constructor() {
+        this.testStr = "";
+        // 调用另一端, 必须以call开头
+        this.callGetStr = null;
+        this.callGetStr2 = null;
+    }
     // 被调用异步函数
     getStr() {
         return "aaa";

@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "supervisor -w build ./build/server.js",
-    "build": "tsc"
+    "dev": "supervisor -w build ./build/NodeJSServer/src/index.js",
+    "build": "tsc",
+    "start": "supervisor -w build ./build/NodeJSServer/src/index.js"
   },
   "author": "",
   "license": "ISC",

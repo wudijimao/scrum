@@ -56,10 +56,13 @@ export class Bridge {
     constructor(core: BridgeCore) {
         this.core = core
         core.register()
-        core.onRecve = this.onRecveMes
+        let self = this
+        core.onRecve = function (params: object) {
+            self.onRecveMes(params)
+        }
     }
 
-    handlers: {}
+    handlers: object = {}
     id: number = 0
     core: BridgeCore = null
     genHandleId() {
@@ -77,38 +80,79 @@ export class Bridge {
             handlerId: id
         })
     }
+    private callBack(handlerId: number, args: object) {
+        this.core.call({
+            method: "callback",
+            handlerId: handlerId,
+            args: args
+        })
+    }
+
+
     onRecveMes(json: object) {
+        debugger
         if (json.method === 'callback') {
+            
             var callback = this.handlers[json.handlerId]
             callback && callback(json.args, json.err)
             delete this.handlers[json.handlerId]
-        } else {
+        } else if (json.method === 'sendEvent') {
             var event = document.createEvent(json.name)
             event.initEvent(json.data, true, true)
             document.dispatchEvent(event)
+        } else {
+            let module = this._modelMap[json.module]
+            if (module != undefined) {
+                var funcName = json.func
+                var func = module[funcName]
+                if (func != undefined) {
+                    let ret = func(json.args);
+                    this.callBack(json.handlerId, ret)
+                } else {
+                    funcName = funcName + "Async"
+                    func = module[funcName]
+                    if (func != undefined) {
+                        let self = this
+                        let retPromise: Promise<any> = func(json.args);
+                        retPromise.then(function(ret){
+                            self.callBack(json.handlerId, ret)
+                        }).catch(function(e){
+                            debugger
+                        })
+                    } else {
+                        console.log("未找到对应的方法")
+                    }
+                }
+            }
         }
     }
 
+    private _modelMap: any = {}
+
     register(moduleName: string, module: object) {
-        for part in module {
-
-        }
-
-        native[moduleName][funcName] = function () {
-            var inArguments = arguments
-            return new Promise(function (resolve, reject) {
-                var args = {}
-                for (var index in inArguments) {
-                    args[argsList[index]] = inArguments[index]
+        console.log(JSON.stringify(module));
+        let self = this
+        this._modelMap[moduleName] = module
+        for (let part in module) {
+            if (part.startsWith("call")) {
+                let funcName = part[4].toLowerCase() + part.substring(5)
+                module[part] = function () {
+                    var inArguments = arguments
+                    return new Promise(function (resolve, reject) {
+                        var args = {}
+                        for (var index in inArguments) {
+                            args[argsList[index]] = inArguments[index]
+                        }
+                        self.callNative(moduleName, funcName, args, function (data, err) {
+                            if (err === undefined) {
+                                resolve(data)
+                            } else {
+                                reject(err)
+                            }
+                        })
+                    })
                 }
-                window.bridge.callNative(moduleName, funcName, args, function (data, err) {
-                    if (err === undefined) {
-                        resolve(data)
-                    } else {
-                        reject(err)
-                    }
-                })
-            })
+            }
         }
     }
 }
@@ -119,6 +163,8 @@ export interface CallGetStrFunction {
 }
 
 export class TestBridgeModule {
+
+    testStr: string = ""
     // 被调用异步函数
     getStr(): string {
         return "aaa"
@@ -130,6 +176,6 @@ export class TestBridgeModule {
         })
     }
     // 调用另一端, 必须以call开头
-    callGetStr: CallGetStrFunction
-    callGetStr2: CallGetStrFunction
+    callGetStr: CallGetStrFunction = null;
+    callGetStr2: CallGetStrFunction = null;
 }
