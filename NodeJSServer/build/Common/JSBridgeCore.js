@@ -84,6 +84,7 @@ class Bridge {
                 var funcName = json.func;
                 var func = module[funcName];
                 if (func != undefined) {
+                    func = func.bind(module);
                     let ret = func(json.args);
                     this.callBack(json.handlerId, ret);
                 }
@@ -91,6 +92,7 @@ class Bridge {
                     funcName = funcName + "Async";
                     func = module[funcName];
                     if (func != undefined) {
+                        func = func.bind(module);
                         let self = this;
                         let retPromise = func(json.args);
                         retPromise.then(function (ret) {
@@ -113,12 +115,21 @@ class Bridge {
         for (let part in module) {
             if (part.startsWith("call")) {
                 let funcName = part[4].toLowerCase() + part.substring(5);
+                let argsList = module[part];
                 module[part] = function () {
                     var inArguments = arguments;
                     return new Promise(function (resolve, reject) {
                         var args = {};
-                        for (var index in inArguments) {
-                            args[argsList[index]] = inArguments[index];
+                        if (argsList != undefined) {
+                            for (var index in inArguments) {
+                                args[argsList[index]] = inArguments[index];
+                            }
+                        }
+                        else {
+                            args = inArguments[0];
+                            if (args == undefined) {
+                                args = {};
+                            }
                         }
                         self.callNative(moduleName, funcName, args, function (data, err) {
                             if (err === undefined) {
@@ -154,4 +165,28 @@ class TestBridgeModule {
     }
 }
 exports.TestBridgeModule = TestBridgeModule;
+class DataSyncModule {
+    constructor() {
+        this.onDataSynced = function () { };
+        this.msg = "not set";
+        this.callSyncData = null;
+        this.callSetMsg = null;
+    }
+    syncData(dataStr) {
+        let jsonData = JSON.parse(dataStr);
+        for (let part in jsonData) {
+            this[part] = jsonData[part];
+        }
+        this.onDataSynced();
+    }
+    _syncData(data) {
+        let str = JSON.stringify(data);
+        this.callSyncData(str);
+    }
+    setMsg(msg) {
+        this.msg = msg;
+        this._syncData(this);
+    }
+}
+exports.DataSyncModule = DataSyncModule;
 //# sourceMappingURL=JSBridgeCore.js.map

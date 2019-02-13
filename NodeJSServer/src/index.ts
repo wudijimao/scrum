@@ -1,9 +1,9 @@
 import * as WebSocket from 'ws'
-import {TestBridgeModule, BridgeCore, OnRecveFunction, Bridge} from '../../Common/JSBridgeCore'
+import {TestBridgeModule, BridgeCore, OnRecveFunction, Bridge, DataSyncModule} from '../../Common/JSBridgeCore'
 import { MessagerModule } from './messager';
 
 let message = new MessagerModule()
-
+let data = new DataSyncModule()
 
 
 let wsServer: WebSocket.Server = new WebSocket.Server({ port: 8088 })
@@ -12,6 +12,7 @@ wsServer.on('connection', function(ws) {
     let model = new TestBridgeModule()
     var wsBridge = new Bridge(new NodeWebSocketBridgeCore(ws))
     wsBridge.register("test", model);
+    wsBridge.register("data", data);
     ws.on('message', function(message) {
       console.log('received: %s', message);
       //ws.send('Hi Client' + message);

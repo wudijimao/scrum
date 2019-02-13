@@ -28,17 +28,16 @@ export default class App extends Vue {
 
   private ws: WebSocket
   private model: JSBridge.TestBridgeModule = new JSBridge.TestBridgeModule()
+  private data = new JSBridge.DataSyncModule()
 
   test() {
-    let app = this
-    model.callGetStr().then(function (mes) {
-      app.msg = mes
-    })
+    debugger
+    this.data.callSetMsg("set msg from client")
   }
 
   test2() {
     let app = this
-    model.callGetStr2().then(function (mes) {
+    this.model.callGetStr2().then(function (mes) {
       app.msg = mes
     })
   }
@@ -48,7 +47,8 @@ export default class App extends Vue {
       
 
       let bridge = new JSBridge.Bridge(new JSBridge.WebSocketBridgeCore(this.ws))
-      bridge.register("test", model)
+      bridge.register("test", this.model)
+      bridge.register("data", this.data)
 
       this.status = "连接中";
       
@@ -70,6 +70,10 @@ export default class App extends Vue {
       }
       this.ws.onclose = function() {
         app.status = "连接断开"
+      }
+      
+      this.data.onDataSynced = function() {
+        app.msg = "onDataSynced:" + app.data.msg
       }
    }
 }

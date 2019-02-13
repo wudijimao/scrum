@@ -31,6 +31,7 @@ class ViewModule {
 var abc: ViewModule = new ViewModule()
 var ws: WebSocket
 var model = new JSBridge.TestBridgeModule()
+var data = new JSBridge.DataSyncModule()
 var test = function() {
       let bridge = new JSBridge.Bridge(new JSBridge.WebSocketBridgeCore(ws))
       
@@ -49,6 +50,10 @@ var test = function() {
       }
       ws.onerror = function(e) {
         abc.msg = "error"
+      }
+
+      data.onDataSynced = function () {
+        abc.msg = ""
       }
     }
 

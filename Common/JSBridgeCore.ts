@@ -106,12 +106,14 @@ export class Bridge {
                 var funcName = json.func
                 var func = module[funcName]
                 if (func != undefined) {
+                    func = func.bind(module)
                     let ret = func(json.args);
                     this.callBack(json.handlerId, ret)
                 } else {
                     funcName = funcName + "Async"
                     func = module[funcName]
                     if (func != undefined) {
+                        func = func.bind(module)
                         let self = this
                         let retPromise: Promise<any> = func(json.args);
                         retPromise.then(function(ret){
@@ -136,12 +138,20 @@ export class Bridge {
         for (let part in module) {
             if (part.startsWith("call")) {
                 let funcName = part[4].toLowerCase() + part.substring(5)
+                let argsList = module[part]
                 module[part] = function () {
                     var inArguments = arguments
                     return new Promise(function (resolve, reject) {
                         var args = {}
-                        for (var index in inArguments) {
-                            args[argsList[index]] = inArguments[index]
+                        if (argsList != undefined) {
+                            for (var index in inArguments) {
+                                args[argsList[index]] = inArguments[index]
+                            }
+                        } else {
+                            args = inArguments[0]
+                            if (args == undefined) {
+                                args = {}
+                            }
                         }
                         self.callNative(moduleName, funcName, args, function (data, err) {
                             if (err === undefined) {
@@ -178,4 +188,33 @@ export class TestBridgeModule {
     // 调用另一端, 必须以call开头
     callGetStr: CallGetStrFunction = null;
     callGetStr2: CallGetStrFunction = null;
+}
+
+export interface CallSendStrFunction {
+    (str: string): Promise<void>
+}
+
+export class DataSyncModule {
+
+    public onDataSynced = function(){}
+
+    public msg: string = "not set"
+    public syncData(dataStr: string) {
+        let jsonData = JSON.parse(dataStr)
+        for (let part in jsonData) {
+            this[part] = jsonData[part]
+        }
+        this.onDataSynced()
+    }
+    public callSyncData: CallSendStrFunction = null
+    private _syncData(data: object) {
+        let str = JSON.stringify(data)
+        this.callSyncData(str)
+    }
+
+    public setMsg(msg: string) {
+        this.msg = msg
+        this._syncData(this)
+    }
+    public callSetMsg: CallSendStrFunction = null
 }
