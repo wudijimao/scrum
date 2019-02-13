@@ -3,12 +3,12 @@ import {TestBridgeModule, BridgeCore, OnRecveFunction, Bridge, DataSyncModule} f
 import { MessagerModule } from './messager';
 
 let message = new MessagerModule()
-let data = new DataSyncModule()
-
 
 let wsServer: WebSocket.Server = new WebSocket.Server({ port: 8088 })
 wsServer.on('connection', function(ws) {
     console.log('connection');
+    
+    let data = new DataSyncModule()
     let model = new TestBridgeModule()
     var wsBridge = new Bridge(new NodeWebSocketBridgeCore(ws))
     wsBridge.register("test", model);

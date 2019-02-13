@@ -4,10 +4,10 @@ const WebSocket = require("ws");
 const JSBridgeCore_1 = require("../../Common/JSBridgeCore");
 const messager_1 = require("./messager");
 let message = new messager_1.MessagerModule();
-let data = new JSBridgeCore_1.DataSyncModule();
 let wsServer = new WebSocket.Server({ port: 8088 });
 wsServer.on('connection', function (ws) {
     console.log('connection');
+    let data = new JSBridgeCore_1.DataSyncModule();
     let model = new JSBridgeCore_1.TestBridgeModule();
     var wsBridge = new JSBridgeCore_1.Bridge(new NodeWebSocketBridgeCore(ws));
     wsBridge.register("test", model);

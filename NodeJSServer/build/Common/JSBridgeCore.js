@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const util_1 = require("util");
 class WKWebViewBridgeCore {
     call(jsonData) {
         let str = JSON.stringify(jsonData);
@@ -67,7 +68,6 @@ class Bridge {
         });
     }
     onRecveMes(json) {
-        debugger;
         if (json.method === 'callback') {
             var callback = this.handlers[json.handlerId];
             callback && callback(json.args, json.err);
@@ -120,7 +120,10 @@ class Bridge {
                     var inArguments = arguments;
                     return new Promise(function (resolve, reject) {
                         var args = {};
-                        if (argsList != undefined) {
+                        if (argsList != undefined && !util_1.isFunction(argsList)) {
+                            if (argsList[0] == undefined) {
+                                debugger;
+                            }
                             for (var index in inArguments) {
                                 args[argsList[index]] = inArguments[index];
                             }
@@ -179,13 +182,13 @@ class DataSyncModule {
         }
         this.onDataSynced();
     }
-    _syncData(data) {
-        let str = JSON.stringify(data);
+    _syncData() {
+        let str = JSON.stringify(this);
         this.callSyncData(str);
     }
     setMsg(msg) {
         this.msg = msg;
-        this._syncData(this);
+        this._syncData();
     }
 }
 exports.DataSyncModule = DataSyncModule;

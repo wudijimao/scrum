@@ -1,3 +1,4 @@
+import { isFunction } from "util";
 
 export interface OnRecveFunction {
     (params: object): void
@@ -90,9 +91,7 @@ export class Bridge {
 
 
     onRecveMes(json: object) {
-        debugger
         if (json.method === 'callback') {
-            
             var callback = this.handlers[json.handlerId]
             callback && callback(json.args, json.err)
             delete this.handlers[json.handlerId]
@@ -143,7 +142,10 @@ export class Bridge {
                     var inArguments = arguments
                     return new Promise(function (resolve, reject) {
                         var args = {}
-                        if (argsList != undefined) {
+                        if (argsList != undefined && !isFunction(argsList)) {
+                            if(argsList[0] == undefined) {
+                                debugger
+                            }
                             for (var index in inArguments) {
                                 args[argsList[index]] = inArguments[index]
                             }
@@ -207,14 +209,14 @@ export class DataSyncModule {
         this.onDataSynced()
     }
     public callSyncData: CallSendStrFunction = null
-    private _syncData(data: object) {
-        let str = JSON.stringify(data)
+    private _syncData() {
+        let str = JSON.stringify(this)
         this.callSyncData(str)
     }
 
     public setMsg(msg: string) {
         this.msg = msg
-        this._syncData(this)
+        this._syncData()
     }
     public callSetMsg: CallSendStrFunction = null
 }
