@@ -7,16 +7,27 @@ class UserContextModule extends JSBridgeCore_1.DataSyncModule {
         this.account = new Account();
         this.callLogin = null;
     }
+    getAccountListFromsList() {
+        this.list = [];
+        for (let key in UserContextModule.sList) {
+            this.list.push(UserContextModule.sList[key].account);
+        }
+        this._syncData();
+    }
     login(userName) {
         this.account.isGuest = true;
         this.account.userInfo.nickName = userName;
-        this._syncData();
+        UserContextModule.sList.push(this);
+        for (let acc in UserContextModule.sList) {
+            UserContextModule.sList[acc].getAccountListFromsList();
+        }
     }
 }
+UserContextModule.sList = Array();
 exports.UserContextModule = UserContextModule;
 class UserInfo {
     constructor() {
-        this.nickName = "";
+        this.nickName = "not set nick Name";
         this.id = "";
     }
 }

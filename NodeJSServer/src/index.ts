@@ -15,9 +15,11 @@ wsServer.on('connection', function(ws) {
 
     let data = new DataSyncModule()
     let model = new TestBridgeModule()
+    let context = new UserContextModule();
+
     wsBridge.register("test", model);
     wsBridge.register("data", data);
-
+    wsBridge.register("context", context);
     
     ws.on('message', function(message) {
       console.log('received: %s', message);

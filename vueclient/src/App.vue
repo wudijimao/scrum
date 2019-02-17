@@ -10,7 +10,7 @@
     <button v-on:click="connect">连接</button>
     <button v-on:click="test">测试</button>
     <button v-on:click="test2">测试2</button>
-    <button v-on:click="testSetUerName">测试设置用户名</button>
+    <button v-on:click="login">测试设置用户名</button>
   </div>
 </template>
 
@@ -19,6 +19,7 @@ import { Component, Vue } from 'vue-property-decorator';
 import HelloWorld from './components/HelloWorld.vue';
 import UserCard from './components/UserCard.vue'
 import * as JSBridge from '../../Common/JSBridgeCore';
+import { UserContextModule } from '../../NodeJSServer/src/user';
 
 var model = new JSBridge.TestBridgeModule()
 
@@ -36,8 +37,9 @@ export default class App extends Vue {
   private ws: WebSocket
   private model: JSBridge.TestBridgeModule = new JSBridge.TestBridgeModule()
   private data = new JSBridge.DataSyncModule()
+  private context = new UserContextModule()
 
-  public items = ["1", "2", "3"]
+  public items = []
 
   test() {
     debugger
@@ -55,6 +57,10 @@ export default class App extends Vue {
     this.data.callSetTestUserName("wudijimao")
   }
 
+  login() {
+    this.context.callLogin("wuximiao")
+  }
+
   connect() {
       let app = this
 
@@ -64,7 +70,7 @@ export default class App extends Vue {
       let bridge = new JSBridge.Bridge(new JSBridge.WebSocketBridgeCore(this.ws))
       bridge.register("test", this.model)
       bridge.register("data", this.data)
-
+      bridge.register("context", this.context)
       
 
       this.status = "连接中";
@@ -92,6 +98,16 @@ export default class App extends Vue {
       this.data.onDataSynced = function() {
         debugger
         app.msg = "onDataSynced:" + this.testUser.username
+      }
+      this.context.onDataSynced = function() {
+        debugger
+        if (this.account.isGuest == true) {
+          app.items = []
+          for (let key in this.list) {
+            app.items.push(this.list[key].userInfo.nickName)
+          }
+        }
+        
       }
    }
 }

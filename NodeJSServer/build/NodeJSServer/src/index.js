@@ -11,8 +11,10 @@ wsServer.on('connection', function (ws) {
     wsBridge.register("account", account);
     let data = new JSBridgeCore_1.DataSyncModule();
     let model = new JSBridgeCore_1.TestBridgeModule();
+    let context = new user_1.UserContextModule();
     wsBridge.register("test", model);
     wsBridge.register("data", data);
+    wsBridge.register("context", context);
     ws.on('message', function (message) {
         console.log('received: %s', message);
         //ws.send('Hi Client' + message);
