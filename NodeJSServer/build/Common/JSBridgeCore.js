@@ -168,19 +168,37 @@ class TestBridgeModule {
     }
 }
 exports.TestBridgeModule = TestBridgeModule;
+class TestUserClass {
+    constructor() {
+        this.id = "aaa";
+        this.username = "bbb";
+    }
+}
 class DataSyncModule {
     constructor() {
         this.onDataSynced = function () { };
         this.msg = "not set";
+        this.testUser = new TestUserClass();
         this.callSyncData = null;
         this.callSetMsg = null;
+        this.callSetTestUserName = null;
     }
     syncData(dataStr) {
         let jsonData = JSON.parse(dataStr);
-        for (let part in jsonData) {
-            this[part] = jsonData[part];
-        }
+        debugger;
+        this._setAttrsForClassVar(this, this, jsonData);
         this.onDataSynced();
+    }
+    _setAttrsForClassVar(origainModel, item, jsonData) {
+        for (let part in jsonData) {
+            let className = Object.prototype.toString.call(item[part]);
+            if (className === "[object Object]") {
+                origainModel._setAttrsForClassVar(origainModel, item[part], jsonData[part]);
+            }
+            else {
+                item[part] = jsonData[part];
+            }
+        }
     }
     _syncData() {
         let str = JSON.stringify(this);
@@ -188,6 +206,10 @@ class DataSyncModule {
     }
     setMsg(msg) {
         this.msg = msg;
+        this._syncData();
+    }
+    setTestUserName(name) {
+        this.testUser.username = name;
         this._syncData();
     }
 }

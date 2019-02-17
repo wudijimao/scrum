@@ -196,18 +196,36 @@ export interface CallSendStrFunction {
     (str: string): Promise<void>
 }
 
+
+class TestUserClass {
+    id = "aaa";
+    username = "bbb";
+}
+
 export class DataSyncModule {
 
     public onDataSynced = function(){}
 
     public msg: string = "not set"
+    public testUser: TestUserClass = new TestUserClass();
+
     public syncData(dataStr: string) {
         let jsonData = JSON.parse(dataStr)
-        for (let part in jsonData) {
-            this[part] = jsonData[part]
-        }
+        debugger
+        this._setAttrsForClassVar(this, this, jsonData);
         this.onDataSynced()
     }
+    private _setAttrsForClassVar(origainModel: DataSyncModule, item: object, jsonData: any) {
+        for (let part in jsonData) {
+            let className = Object.prototype.toString.call(item[part])
+            if (className === "[object Object]") {
+                origainModel._setAttrsForClassVar(origainModel, item[part], jsonData[part]);
+            } else {
+                item[part] = jsonData[part]
+            }
+        }
+    }
+
     public callSyncData: CallSendStrFunction = null
     public _syncData() {
         let str = JSON.stringify(this)
@@ -219,4 +237,11 @@ export class DataSyncModule {
         this._syncData()
     }
     public callSetMsg: CallSendStrFunction = null
+
+    public setTestUserName(name: string) {
+        this.testUser.username = name
+        this._syncData()
+    }
+
+    public callSetTestUserName: CallSendStrFunction = null
 }

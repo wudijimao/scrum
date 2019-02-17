@@ -2,6 +2,7 @@
   <div id="app">
     <img alt="Vue logo" src="./assets/logo.png">
     <h1>状态:{{status}}</h1>
+    <h2>数据:{{msg}}</h2>
     <div v-for="(item, i) in items" :key="i">
       <UserCard class="card" :msg=item />
     </div>
@@ -9,6 +10,7 @@
     <button v-on:click="connect">连接</button>
     <button v-on:click="test">测试</button>
     <button v-on:click="test2">测试2</button>
+    <button v-on:click="testSetUerName">测试设置用户名</button>
   </div>
 </template>
 
@@ -21,7 +23,7 @@ import * as JSBridge from '../../Common/JSBridgeCore';
 var model = new JSBridge.TestBridgeModule()
 
 @Component({
-  components: {
+  components: { 
     HelloWorld,
     UserCard,
   },
@@ -49,7 +51,13 @@ export default class App extends Vue {
     })
   }
 
+  testSetUerName() {
+    this.data.callSetTestUserName("wudijimao")
+  }
+
   connect() {
+      let app = this
+
       this.ws = new WebSocket("ws://127.0.0.1:8088");
       
 
@@ -57,9 +65,11 @@ export default class App extends Vue {
       bridge.register("test", this.model)
       bridge.register("data", this.data)
 
+      
+
       this.status = "连接中";
       
-      let app = this
+      
       this.ws.onopen = function(e) {
         app.status = "已经连接上"
         app.msg = "ceshiceshi"
@@ -68,10 +78,6 @@ export default class App extends Vue {
         //   app.msg = "callGetStr\()"
         // })
       }
-      // this.ws.onmessage = function(mes) {
-      //   app.msg = mes.data
-      //   //bridge.onRecveMes(mes.data)
-      // }
       this.ws.onerror = function(e) {
         app.status = "连接错误"
       }
@@ -79,8 +85,13 @@ export default class App extends Vue {
         app.status = "连接断开"
       }
       
+      //this.data.onDataSynced = function() {
+      //  app.msg = "onDataSynced:" + app.data.msg
+      //}
+
       this.data.onDataSynced = function() {
-        app.msg = "onDataSynced:" + app.data.msg
+        debugger
+        app.msg = "onDataSynced:" + this.testUser.username
       }
    }
 }
