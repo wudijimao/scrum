@@ -1,18 +1,24 @@
 import * as WebSocket from 'ws'
 import {TestBridgeModule, BridgeCore, OnRecveFunction, Bridge, DataSyncModule} from '../../Common/JSBridgeCore'
-import { MessagerModule } from './messager';
+import { UserContextModule } from './user';
 
-let message = new MessagerModule()
+
 
 let wsServer: WebSocket.Server = new WebSocket.Server({ port: 8088 })
 wsServer.on('connection', function(ws) {
     console.log('connection');
+    let account = new UserContextModule()
     
+    var wsBridge = new Bridge(new NodeWebSocketBridgeCore(ws))
+    wsBridge.register("account", account)
+
+
     let data = new DataSyncModule()
     let model = new TestBridgeModule()
-    var wsBridge = new Bridge(new NodeWebSocketBridgeCore(ws))
     wsBridge.register("test", model);
     wsBridge.register("data", data);
+
+    
     ws.on('message', function(message) {
       console.log('received: %s', message);
       //ws.send('Hi Client' + message);

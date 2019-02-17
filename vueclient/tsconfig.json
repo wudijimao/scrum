@@ -24,7 +24,9 @@
       "dom",
       "dom.iterable",
       "scripthost"
-    ]
+    ],
+    "experimentalDecorators": true,
+    "allowJs": true
   },
   "include": [
     "src/**/*.ts",

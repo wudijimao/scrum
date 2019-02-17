@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const JSBridgeCore_1 = require("../../Common/JSBridgeCore");
-class ContextModule extends JSBridgeCore_1.DataSyncModule {
+class UserContextModule extends JSBridgeCore_1.DataSyncModule {
     constructor() {
         super(...arguments);
         this.account = new Account();
@@ -10,9 +10,10 @@ class ContextModule extends JSBridgeCore_1.DataSyncModule {
     login(userName) {
         this.account.isGuest = true;
         this.account.userInfo.nickName = userName;
+        this._syncData();
     }
 }
-exports.ContextModule = ContextModule;
+exports.UserContextModule = UserContextModule;
 class UserInfo {
     constructor() {
         this.nickName = "";
@@ -28,4 +29,4 @@ class Account {
     }
 }
 exports.Account = Account;
-//# sourceMappingURL=messager.js.map
+//# sourceMappingURL=user.js.map

@@ -2,7 +2,10 @@
   <div id="app">
     <img alt="Vue logo" src="./assets/logo.png">
     <h1>状态:{{status}}</h1>
-    <HelloWorld :msg="msg"/>
+    <div v-for="(item, i) in items" :key="i">
+      <UserCard class="card" :msg=item />
+    </div>
+    
     <button v-on:click="connect">连接</button>
     <button v-on:click="test">测试</button>
     <button v-on:click="test2">测试2</button>
@@ -12,6 +15,7 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 import HelloWorld from './components/HelloWorld.vue';
+import UserCard from './components/UserCard.vue'
 import * as JSBridge from '../../Common/JSBridgeCore';
 
 var model = new JSBridge.TestBridgeModule()
@@ -19,6 +23,7 @@ var model = new JSBridge.TestBridgeModule()
 @Component({
   components: {
     HelloWorld,
+    UserCard,
   },
 })
 
@@ -29,6 +34,8 @@ export default class App extends Vue {
   private ws: WebSocket
   private model: JSBridge.TestBridgeModule = new JSBridge.TestBridgeModule()
   private data = new JSBridge.DataSyncModule()
+
+  public items = ["1", "2", "3"]
 
   test() {
     debugger
@@ -87,5 +94,10 @@ export default class App extends Vue {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+.card {
+  background-color: blue;
+  float: left;
+  padding: 5em;
 }
 </style>

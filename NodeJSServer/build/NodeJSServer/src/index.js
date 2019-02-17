@@ -2,14 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const WebSocket = require("ws");
 const JSBridgeCore_1 = require("../../Common/JSBridgeCore");
-const messager_1 = require("./messager");
-let message = new messager_1.MessagerModule();
+const user_1 = require("./user");
 let wsServer = new WebSocket.Server({ port: 8088 });
 wsServer.on('connection', function (ws) {
     console.log('connection');
+    let account = new user_1.UserContextModule();
+    var wsBridge = new JSBridgeCore_1.Bridge(new NodeWebSocketBridgeCore(ws));
+    wsBridge.register("account", account);
     let data = new JSBridgeCore_1.DataSyncModule();
     let model = new JSBridgeCore_1.TestBridgeModule();
-    var wsBridge = new JSBridgeCore_1.Bridge(new NodeWebSocketBridgeCore(ws));
     wsBridge.register("test", model);
     wsBridge.register("data", data);
     ws.on('message', function (message) {

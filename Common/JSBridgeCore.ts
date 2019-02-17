@@ -209,7 +209,7 @@ export class DataSyncModule {
         this.onDataSynced()
     }
     public callSyncData: CallSendStrFunction = null
-    private _syncData() {
+    public _syncData() {
         let str = JSON.stringify(this)
         this.callSyncData(str)
     }
