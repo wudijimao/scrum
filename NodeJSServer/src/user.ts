@@ -14,7 +14,7 @@ export class UserContextModule extends DataSyncModule {
     }
 
     login(userName: string) {
-        this.account.isGuest = true
+        this.account.isLogin = true
         this.account.userInfo.nickName = userName
         UserContextModule.sList.push(this)
         for (let acc in UserContextModule.sList) {
@@ -33,7 +33,7 @@ export class UserInfo {
 
 export class Account {
     id = "";
-    isGuest = false;
+    isLogin = false;
     userInfo = new UserInfo() 
 }
 

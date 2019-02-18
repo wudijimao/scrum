@@ -101,7 +101,7 @@ export default class App extends Vue {
       }
       this.context.onDataSynced = function() {
         debugger
-        if (this.account.isGuest == true) {
+        if (this.account.isLogin == true) {
           app.items = []
           for (let key in this.list) {
             app.items.push(this.list[key].userInfo.nickName)
